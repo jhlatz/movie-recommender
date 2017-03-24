@@ -1,0 +1,12 @@
+/* JavaFX CSS - Leave this comment until you have at least create one rule which uses -fx-Property */
+.root {
+	-fx-background-color:darkgray;
+}
+
+.button {
+	-fx-background-color:lightgray; 
+}
+
+.button:hover {
+	-fx-background-color: linear-gradient(#7D6999, #3C2D51);
+}
