@@ -260,8 +260,7 @@ public class Main extends Application {
 	private void seeTopDirectors() throws SQLException{
 		ArrayList<String> list = new ArrayList<>();
 
-		String query = "SELECT directorName, rtAllCriticsRating FROM movie_directors, movies WHERE movie_directors.movieID = movies.id AND "
-				+ "(SELECT ";
+		String query = "SELECT directorName, rtAllCriticsRating FROM movie_directors, movies WHERE movie_directors.movieID = movies.id";
 		PreparedStatement ps = con.prepareStatement(query);
 		ps.setInt(1, Integer.parseInt(numEntries.getText()));
 
