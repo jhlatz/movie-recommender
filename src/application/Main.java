@@ -8,14 +8,10 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Scanner;
 
 import javafx.application.Application;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.stage.Stage;
@@ -24,13 +20,10 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 
@@ -41,7 +34,6 @@ public class Main extends Application {
 	private static final String password = "letmeinplease";
 
 	private static Connection con;
-	private static Statement stmt;
 
 	protected Stage stage;
 	protected Scene menu,loginMenu;
@@ -59,9 +51,6 @@ public class Main extends Application {
 			login = buildLoginPane();
 			loginMenu = new Scene(login);
 			loginMenu.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-			//root = buildMenuPane();
-			//menu = new Scene(root);
-			//menu.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			stage.setTitle("Movie Recommender");
 			stage.setScene(loginMenu);
 			stage.show();
@@ -70,7 +59,7 @@ public class Main extends Application {
 		}
 	}
 
-	public GridPane buildLoginPane() {
+	public GridPane buildLoginPane() throws SQLException{
 		GridPane gridLogin = new GridPane();
 		gridLogin.setVgap(5);
 		gridLogin.setHgap(10);
@@ -78,22 +67,27 @@ public class Main extends Application {
 		Label id = new Label("User ID");
 		gridLogin.add(id, 0, 0);
 
-		//Label pw = new Label("Password");
-		//gridLogin.add(pw, 1, 0);
-
 		txfID = new TextField();
 		gridLogin.add(txfID, 0, 1);
-
-		//txfPW = new TextField();
-		//gridLogin.add(txfPW, 1, 1);
 
 		Button login = new Button("Login");
 		login.setOnAction(new loginEventHandler());
 		gridLogin.add(login, 0, 2);
 
-		//Button createNewUser = new Button("Create new Account");
-		//createNewUser.setOnAction(new createNewUserEventHandler());
-		//gridLogin.add(createNewUser,1, 2);
+		String query = "SELECT title, year, rtAudienceScore, rtPictureURL, imdbPictureURL FROM movies WHERE id=1";
+		PreparedStatement ps = con.prepareStatement(query);
+		ResultSet rs = ps.executeQuery();
+
+		Movie movie = null;
+		while(rs.next()) {
+			movie = new Movie(rs.getString("title"), rs.getInt("year"), rs.getInt("rtAudienceScore"), rs.getString("rtPictureURL"), rs.getString("imdbPictureURL"));
+		}
+
+		rs.close();
+		ps.close();
+
+		VBox test = movie.getMovie();
+		gridLogin.add(test, 0, 3);
 
 		return gridLogin;
 	}
@@ -165,34 +159,6 @@ public class Main extends Application {
 		search.setMinSize(150, 25);
 		buttons.add(search, 1, 2);
 
-//		Button topGenre = new Button("Search");
-//		topGenre.setOnAction(e -> {
-//			System.out.println("stuff");
-//		});
-//		topGenre.setMinSize(150, 25);
-//		menu.add(topGenre, 2, 0);
-
-//		Button director = new Button("Search");
-//		director.setOnAction(e -> {
-//			System.out.println("stuff");
-//		});
-//		director.setMinSize(150, 25);
-//		menu.add(director, 3, 0);
-
-//		Button actor = new Button("Search");
-//		actor.setOnAction(e -> {
-//			System.out.println("stuff");
-//		});
-//		actor.setMinSize(150, 25);
-//		menu.add(actor, 4, 0);
-
-//		Button tag = new Button("Search");
-//		tag.setOnAction(e -> {
-//			System.out.println("stuff");
-//		});
-//		tag.setMinSize(150, 25);
-//		menu.add(tag, 0, 1);
-
 		Button topPopularDirectors = new Button("Top Popular Directors");
 		topPopularDirectors.setOnAction(e -> {
 			try {
@@ -210,13 +176,6 @@ public class Main extends Application {
 		});
 		topPopularActors.setMinSize(150, 25);
 		buttons.add(topPopularActors, 2, 1);
-
-//		Button rating = new Button("Search");
-//		rating.setOnAction(e -> {
-//			System.out.println("stuff");
-//		});
-//		rating.setMinSize(150, 25);
-//		menu.add(rating, 3, 1);
 
 		Button movieTags = new Button("User Ratings");
 		movieTags.setOnAction(e -> {
@@ -326,7 +285,6 @@ public class Main extends Application {
 	public static void main(String[] args) throws SQLException, IOException, ClassNotFoundException{
 		con = DriverManager.getConnection(url, user, password);
 		System.out.println("Database connected sucessfully");
-		stmt = con.createStatement();
 
 		launch(args);
 	}
