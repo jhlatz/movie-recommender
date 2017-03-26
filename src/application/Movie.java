@@ -21,7 +21,7 @@ public class Movie {
 		Image imdbImg = new Image(imdbURL);
 		ImageView imdbImgView = new ImageView(imdbImg);
 
-		HBox info = new HBox(50);
+		HBox info = new HBox(100);
 		info.getChildren().addAll(this.title, this.year, this.score);
 
 		HBox images = new HBox(5);

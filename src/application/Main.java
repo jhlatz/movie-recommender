@@ -241,8 +241,8 @@ public class Main extends Application {
 	}
 
 	private void setPages(ArrayList<String> list) {
-		int elementsPerPage = 5;
-		int pages = list.size()/elementsPerPage;
+		int elementsPerPage = 1;
+		int pages = list.size();
 		Pagination page = new Pagination(pages,0);
 		page.setPageFactory(new Callback<Integer, Node>() {
 			public Node call(Integer pageIndex) {
