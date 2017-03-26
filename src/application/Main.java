@@ -42,8 +42,6 @@ public class Main extends Application {
 	protected VBox root;
 	protected GridPane login;
 
-	//protected Map<String, Account> users = new HashMap<String, Account>();
-
 	@Override
 	public void start(Stage primaryStage) {
 		try {
@@ -192,18 +190,6 @@ public class Main extends Application {
 
 		rs.close();
 		ps.close();
-
-		/*
-		try {
-			Scanner scan = new Scanner(new File("C:/Users/Jacob/Documents/My Classes/Fall 2016/Intro to Cyber Security/Workspace/Database_GUI/src/directors"));
-			while(scan.hasNextLine()) {
-				list.add(scan.nextLine());
-			}
-			scan.close();
-		} catch (FileNotFoundException e) {
-			System.out.println("File Not Found!");
-		}*/
-
 
 		setPages(list);
 	}
