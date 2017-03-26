@@ -74,21 +74,6 @@ public class Main extends Application {
 		login.setOnAction(new loginEventHandler());
 		gridLogin.add(login, 0, 2);
 
-		String query = "SELECT title, year, rtAudienceScore, rtPictureURL, imdbPictureURL FROM movies WHERE id=1";
-		PreparedStatement ps = con.prepareStatement(query);
-		ResultSet rs = ps.executeQuery();
-
-		Movie movie = null;
-		while(rs.next()) {
-			movie = new Movie(rs.getString("title"), rs.getInt("year"), rs.getInt("rtAudienceScore"), rs.getString("rtPictureURL"), rs.getString("imdbPictureURL"));
-		}
-
-		rs.close();
-		ps.close();
-
-		VBox test = movie.getMovie();
-		gridLogin.add(test, 0, 3);
-
 		return gridLogin;
 	}
 
@@ -106,8 +91,6 @@ public class Main extends Application {
 		VBox menu = new VBox();
 		menu.setPadding(new Insets(5,5,5,5));
 		menu.setSpacing(10);
-
-
 
 		GridPane buttons = new GridPane();
 		buttons.setAlignment(Pos.CENTER);
@@ -177,16 +160,15 @@ public class Main extends Application {
 	}
 
 	private void seeTopMovies() throws SQLException{
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<Movie> list = new ArrayList<>();
 
-		String query = "SELECT DISTINCT title, rtAllCriticsRating FROM movies ORDER BY rtAllCriticsRating DESC LIMIT ?";
+		String query = "SELECT DISTINCT title, year, rtAudienceScore, rtPictureURL, imdbPictureURL, rtAllCriticsRating FROM movies ORDER BY rtAllCriticsRating DESC LIMIT ?";
 		PreparedStatement ps = con.prepareStatement(query);
 		ps.setInt(1, Integer.parseInt(numEntries.getText()));
-
 		ResultSet rs = ps.executeQuery();
 
 		while(rs.next()) {
-			list.add(rs.getString("title"));
+			list.add(new Movie(rs.getString("title"), rs.getInt("year"), rs.getInt("rtAudienceScore"), rs.getString("rtPictureURL"), rs.getString("imdbPictureURL")));
 		}
 
 		rs.close();
@@ -240,25 +222,24 @@ public class Main extends Application {
 		setPages(list);
 	}
 
-	private void setPages(ArrayList<String> list) {
+	private void setPages(ArrayList<?> list) {
 		int elementsPerPage = 1;
 		int pages = list.size();
 		Pagination page = new Pagination(pages,0);
 		page.setPageFactory(new Callback<Integer, Node>() {
 			public Node call(Integer pageIndex) {
-				VBox movieList = new VBox(5);
+				VBox movie = null;
 				int currPage = pageIndex*elementsPerPage;
 				for(int i=currPage; i < currPage+elementsPerPage; i++){
-					Label str = new Label(list.get(i));
-					movieList.getChildren().add(str);
+					movie = ((Movie) list.get(i)).getMovie();
 				}
-				return movieList;
+				return movie;
 			}
 		});
 
 		root.getChildren().remove(1);
 		root.getChildren().add(page);
-		stage.setHeight(303);
+		stage.setHeight(535);
 	}
 
 	public static void main(String[] args) throws SQLException, IOException, ClassNotFoundException{
