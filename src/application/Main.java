@@ -92,27 +92,6 @@ public class Main extends Application {
 		return gridLogin;
 	}
 
-	/*private class loginEventHandler implements EventHandler<ActionEvent> {
-		@Override
-		public void handle(ActionEvent event) {
-			try{
-
-				if(users.containsKey(txfID.getText())) {
-					if(users.get(txfID.getText()).getPassword().equals(txfPW.getText())) {
-						user = users.get(txfID.getText()).getPerson();
-						root.getChildren().clear();
-						root.getChildren().add(displayInfo());
-					}
-				}
-
-			} catch (NullPointerException e) {
-				e.printStackTrace();
-			} catch (NumberFormatException e) {
-				e.printStackTrace();
-			}
-		}
-	}*/
-
 	private class loginEventHandler implements EventHandler<ActionEvent> {
 		@Override
 		public void handle(ActionEvent event) {
