@@ -248,7 +248,6 @@ public class Main extends Application {
 
 	public static void main(String[] args) throws SQLException, IOException, ClassNotFoundException{
 		con = DriverManager.getConnection(url, user, password);
-		System.out.println("Database connected sucessfully");
 
 		launch(args);
 	}
