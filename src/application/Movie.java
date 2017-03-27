@@ -8,18 +8,24 @@ import javafx.scene.layout.VBox;
 
 public class Movie {
 	private Label title, year, score;
+	private ImageView rtImgView, imdbImgView;
 	private VBox view;
+	private int id;
 
-	public Movie (String title, int  year, int score, String rtURL, String imdbURL) {
+	public Movie (int id, String title, int  year, int score, String rtURL, String imdbURL) {
+		this.id = id;
+
 		this.title = new Label(title);
 		this.year = new Label(""+year);
 		this.score = new Label(""+score);
 
 		Image rtImg = new Image(rtURL);
-		ImageView rtImgView = new ImageView(rtImg);
+		rtImgView = new ImageView(rtImg);
+		rtImgView.resize(128, 72);
 
 		Image imdbImg = new Image(imdbURL);
-		ImageView imdbImgView = new ImageView(imdbImg);
+		imdbImgView = new ImageView(imdbImg);
+		imdbImgView.resize(128, 72);
 
 		HBox info = new HBox(100);
 		info.getChildren().addAll(this.title, this.year, this.score);
@@ -33,6 +39,10 @@ public class Movie {
 
 	public VBox getMovie() {
 		return view;
+	}
+
+	public int getID() {
+		return id;
 	}
 
 }

@@ -23,6 +23,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -83,6 +84,7 @@ public class Main extends Application {
 			menu = new Scene(root);
 			menu.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			stage.setScene(menu);
+			stage.setMaximized(true);
 		}
 	}
 
@@ -161,13 +163,13 @@ public class Main extends Application {
 	private void seeTopMovies() throws SQLException{
 		ArrayList<Movie> list = new ArrayList<>();
 
-		String query = "SELECT DISTINCT title, year, rtAudienceScore, rtPictureURL, imdbPictureURL, rtAllCriticsRating FROM movies ORDER BY rtAllCriticsRating DESC LIMIT ?";
+		String query = "SELECT DISTINCT id, title, year, rtAudienceScore, rtPictureURL, imdbPictureURL, rtAllCriticsRating FROM movies ORDER BY rtAllCriticsRating DESC LIMIT ?";
 		PreparedStatement ps = con.prepareStatement(query);
 		ps.setInt(1, Integer.parseInt(numEntries.getText()));
 		ResultSet rs = ps.executeQuery();
 
 		while(rs.next()) {
-			list.add(new Movie(rs.getString("title"), rs.getInt("year"), rs.getInt("rtAudienceScore"), rs.getString("rtPictureURL"), rs.getString("imdbPictureURL")));
+			list.add(new Movie(rs.getInt("id"), rs.getString("title"), rs.getInt("year"), rs.getInt("rtAudienceScore"), rs.getString("rtPictureURL"), rs.getString("imdbPictureURL")));
 		}
 
 		rs.close();
@@ -210,41 +212,48 @@ public class Main extends Application {
 	}
 
 	private void setPages(ArrayList<?> list) {
-		int elementsPerPage = 1;
+		int elementsPerPage = 5;
 		int pages = list.size()/elementsPerPage;
 		Pagination page = new Pagination(pages,0);
 		page.setPageFactory(new Callback<Integer, Node>() {
 			public Node call(Integer pageIndex) {
-				VBox movie = null;
+				HBox movieList = new HBox(5);
 				int currPage = pageIndex*elementsPerPage;
 				for(int i=currPage; i < currPage+elementsPerPage; i++){
-					movie = ((Movie) list.get(i)).getMovie();
+					final VBox fMovie = ((Movie) list.get(i)).getMovie();
+					fMovie.setOnMouseClicked(e -> {
+						if(!selectedMovies.contains(fMovie) ) {
+							selectedMovies.add(fMovie);
+							fMovie.setStyle("-fx-padding: 2;" +
+				                      		"-fx-border-style: solid inside;" +
+				                      		"-fx-border-width: 2;" +
+				                      		"-fx-border-insets: 5;" +
+				                      		"-fx-border-radius: 5;" +
+											"-fx-border-color: blue;");
+						} else {
+							selectedMovies.remove(fMovie);
+							fMovie.setStyle(null);
+						}
+					});
+					fMovie.setOnMouseEntered(e -> {
+						fMovie.setScaleX(1.2);
+						fMovie.setScaleY(1.2);
+
+					});
+					fMovie.setOnMouseExited(e -> {
+						fMovie.setScaleX(1);
+						fMovie.setScaleY(1);
+					});
+					movieList.getChildren().add(fMovie);
 				}
-				final VBox fMovie = movie;
-				fMovie.setOnMouseClicked(e -> {
-					if(!selectedMovies.contains(fMovie) ) {
-						selectedMovies.add(fMovie);
-						fMovie.setStyle("-fx-padding: 2;" +
-			                      		"-fx-border-style: solid inside;" +
-			                      		"-fx-border-width: 2;" +
-			                      		"-fx-border-insets: 5;" +
-			                      		"-fx-border-radius: 5;" +
-										"-fx-border-color: blue;");
-						stage.sizeToScene();
-					} else {
-						selectedMovies.remove(fMovie);
-						fMovie.setStyle(null);
-						stage.sizeToScene();
-					}
-				});
-				return fMovie;
+				return movieList;
 			}
 		});
 
 		root.getChildren().remove(1);
 		root.getChildren().add(page);
-		stage.sizeToScene();
 	}
+
 
 	public static void main(String[] args) throws SQLException, IOException, ClassNotFoundException{
 		con = DriverManager.getConnection(url, user, password);
