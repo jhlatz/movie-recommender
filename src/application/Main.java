@@ -41,6 +41,7 @@ public class Main extends Application {
 	protected Label txtInfo;
 	protected VBox root;
 	protected GridPane login;
+	private ArrayList<VBox> selectedMovies = new ArrayList<>();
 
 	@Override
 	public void start(Stage primaryStage) {
@@ -210,7 +211,7 @@ public class Main extends Application {
 
 	private void setPages(ArrayList<?> list) {
 		int elementsPerPage = 1;
-		int pages = list.size();
+		int pages = list.size()/elementsPerPage;
 		Pagination page = new Pagination(pages,0);
 		page.setPageFactory(new Callback<Integer, Node>() {
 			public Node call(Integer pageIndex) {
@@ -219,13 +220,30 @@ public class Main extends Application {
 				for(int i=currPage; i < currPage+elementsPerPage; i++){
 					movie = ((Movie) list.get(i)).getMovie();
 				}
-				return movie;
+				final VBox fMovie = movie;
+				fMovie.setOnMouseClicked(e -> {
+					if(!selectedMovies.contains(fMovie) ) {
+						selectedMovies.add(fMovie);
+						fMovie.setStyle("-fx-padding: 2;" +
+			                      		"-fx-border-style: solid inside;" +
+			                      		"-fx-border-width: 2;" +
+			                      		"-fx-border-insets: 5;" +
+			                      		"-fx-border-radius: 5;" +
+										"-fx-border-color: blue;");
+						stage.sizeToScene();
+					} else {
+						selectedMovies.remove(fMovie);
+						fMovie.setStyle(null);
+						stage.sizeToScene();
+					}
+				});
+				return fMovie;
 			}
 		});
 
 		root.getChildren().remove(1);
 		root.getChildren().add(page);
-		stage.setHeight(535);
+		stage.sizeToScene();
 	}
 
 	public static void main(String[] args) throws SQLException, IOException, ClassNotFoundException{
