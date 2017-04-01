@@ -24,13 +24,17 @@ public class Movie {
 
 		Image rtImg = new Image(rtURL);
 		rtImgView = new ImageView(rtImg);
-		rtImgView.resize(128, 72);
+		rtImgView.setFitWidth(500);
+		rtImgView.setFitHeight(250);
+		rtImgView.setPreserveRatio(true);
 
 		Image imdbImg = new Image(imdbURL);
 		imdbImgView = new ImageView(imdbImg);
-		imdbImgView.resize(128, 72);
+		imdbImgView.setFitWidth(500);
+		imdbImgView.setFitHeight(250);
+		imdbImgView.setPreserveRatio(true);
 
-		HBox info = new HBox(100);
+		VBox info = new VBox(5);
 		info.getChildren().addAll(this.title, this.year, this.score);
 
 		HBox images = new HBox(5);
