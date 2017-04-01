@@ -4,17 +4,20 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.stage.Stage;
@@ -25,11 +28,12 @@ import javafx.scene.chart.PieChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Pagination;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -157,11 +161,10 @@ public class Main extends Application {
 		txfSearch.setPromptText("Search");
 		buttons.add(txfSearch, 0, 2);
 
-		VBox buildInfo = null;
+		HBox buildInfo = null;
 		try {
 			buildInfo = buildBreakdown();
 		} catch (SQLException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
@@ -171,31 +174,63 @@ public class Main extends Application {
 		return menu;
 	}
 
-	private VBox buildBreakdown() throws SQLException{
-		VBox test  = new VBox();
-		String query = "SELECT G.genre FROM movie_genre AS G WHERE G.movieID IN (SELECT R.movieID FROM user_ratedmovies AS R WHERE R.userID = ?)";
+	@SuppressWarnings("unchecked")
+	private HBox buildBreakdown() throws SQLException{
+		HBox breakdown  = new HBox();
+
+		String query = "SELECT M.title, T.dateTime FROM user_ratedmovies_timestamps AS T JOIN movies as M ON M.id = T.movieID WHERE T.userID = ?";
 		PreparedStatement ps = con.prepareStatement(query);
 		ps.setInt(1, Integer.parseInt(txfID.getText()));
 		ResultSet rs = ps.executeQuery();
 
+		ObservableList<UserRatings> asdf = FXCollections.observableArrayList();
+		while(rs.next()) {
+			asdf.add(new UserRatings(rs.getString("M.title"), rs.getDate("T.dateTime")));
+		}
+		TableView<UserRatings>table = new TableView<UserRatings>();
+		table.setEditable(false);
+
+		TableColumn<UserRatings, String> title = new TableColumn<UserRatings, String>("Title");
+		title.setMinWidth(200);
+		title.setCellValueFactory(
+				new PropertyValueFactory<UserRatings, String>("title"));
+
+		TableColumn<UserRatings, Date> timeStamp = new TableColumn<UserRatings, Date>("Timestamp");
+		timeStamp.setMinWidth(200);
+		timeStamp.setCellValueFactory(
+				new PropertyValueFactory<UserRatings, Date>("time"));
+
+		table.setItems(asdf);
+		table.getColumns().addAll(title, timeStamp);
+
+		query = "SELECT G.genre FROM movie_genre AS G WHERE G.movieID IN (SELECT R.movieID FROM user_ratedmovies AS R WHERE R.userID = ?)";
+		ps = con.prepareStatement(query);
+		ps.setInt(1, Integer.parseInt(txfID.getText()));
+		rs = ps.executeQuery();
+
+		int totalRatings = 0;
 		HashMap<String, Integer> userRatings = new HashMap<String, Integer>();
 		while(rs.next()) {
 			String genre = rs.getString("G.genre");
 			if(userRatings.get(genre)==null) {
 				userRatings.put(genre, 1);
+				totalRatings++;
 			} else {
 				userRatings.put(genre, userRatings.get(genre)+1);
+				totalRatings++;
 			}
 		}
 
+		DecimalFormat df = new DecimalFormat("##0.00");
 		PieChart ratings = new PieChart();
 		for(Map.Entry<String, Integer> entry : userRatings.entrySet()) {
-			PieChart.Data slice = new PieChart.Data(entry.getKey(), entry.getValue());
+			PieChart.Data slice = new PieChart.Data(entry.getKey()+": "+df.format(((double)entry.getValue()/totalRatings)*100)+"%", entry.getValue());
 			ratings.getData().add(slice);
 		}
 
-		test.getChildren().add(ratings);
-		return test;
+		breakdown.getChildren().addAll(table,ratings);
+		breakdown.setAlignment(Pos.CENTER);
+		return breakdown;
 
 	}
 
