@@ -1,5 +1,7 @@
 package application;
 
+import java.util.ArrayList;
+
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -10,6 +12,7 @@ public class Movie {
 	private Label title, year, score;
 	private ImageView rtImgView, imdbImgView;
 	private VBox view;
+	private ArrayList<String> tags;
 	private int id;
 
 	public Movie (int id, String title, int  year, int score, String rtURL, String imdbURL) {

@@ -9,6 +9,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Scanner;
 
 import javafx.application.Application;
@@ -18,12 +21,15 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.chart.PieChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -151,13 +157,46 @@ public class Main extends Application {
 		txfSearch.setPromptText("Search");
 		buttons.add(txfSearch, 0, 2);
 
-		txtInfo = new Label();
-		txtInfo.setText("This is our Movie Recommender");
+		VBox buildInfo = null;
+		try {
+			buildInfo = buildBreakdown();
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
-		menu.getChildren().addAll(buttons, txtInfo);
+		menu.getChildren().addAll(buttons, buildInfo);
 		menu.setAlignment(Pos.CENTER);
 
 		return menu;
+	}
+
+	private VBox buildBreakdown() throws SQLException{
+		VBox test  = new VBox();
+		String query = "SELECT G.genre FROM movie_genre AS G WHERE G.movieID IN (SELECT R.movieID FROM user_ratedmovies AS R WHERE R.userID = ?)";
+		PreparedStatement ps = con.prepareStatement(query);
+		ps.setInt(1, Integer.parseInt(txfID.getText()));
+		ResultSet rs = ps.executeQuery();
+
+		HashMap<String, Integer> userRatings = new HashMap<String, Integer>();
+		while(rs.next()) {
+			String genre = rs.getString("G.genre");
+			if(userRatings.get(genre)==null) {
+				userRatings.put(genre, 1);
+			} else {
+				userRatings.put(genre, userRatings.get(genre)+1);
+			}
+		}
+
+		PieChart ratings = new PieChart();
+		for(Map.Entry<String, Integer> entry : userRatings.entrySet()) {
+			PieChart.Data slice = new PieChart.Data(entry.getKey(), entry.getValue());
+			ratings.getData().add(slice);
+		}
+
+		test.getChildren().add(ratings);
+		return test;
+
 	}
 
 	private void seeTopMovies() throws SQLException{
@@ -257,6 +296,7 @@ public class Main extends Application {
 
 	public static void main(String[] args) throws SQLException, IOException, ClassNotFoundException{
 		con = DriverManager.getConnection(url, user, password);
+		System.out.println("Connected");
 
 		launch(args);
 	}
