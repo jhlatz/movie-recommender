@@ -102,7 +102,7 @@ public class Main extends Application {
 	}
 
 	private VBox buildMenuPane() {
-		VBox menu = new VBox();
+		VBox menu  = new VBox();
 		menu.setPadding(new Insets(5,5,5,5));
 		menu.setSpacing(10);
 
@@ -117,7 +117,18 @@ public class Main extends Application {
 
 		Button userInfo = new Button("User Info");
 		userInfo.setOnAction(e -> {
-			stage.setScene(SeeTopMovies.getScene());
+			try {
+				root.getChildren().remove(3);
+				root.getChildren().remove(2);
+				root.getChildren().addAll(buildBreakdown());
+			} catch (Exception e1) {
+				root.getChildren().remove(2);
+				try {
+					root.getChildren().addAll(buildBreakdown());
+				} catch (Exception e2) {
+					e2.printStackTrace();
+				}
+			}
 		});
 		userInfo.setMinSize(150, 25);
 		buttons.add(userInfo, 0, 0);
@@ -213,9 +224,9 @@ public class Main extends Application {
 		ps.setInt(1, Integer.parseInt(txfID.getText()));
 		ResultSet rs = ps.executeQuery();
 
-		ObservableList<UserRatings> asdf = FXCollections.observableArrayList();
+		ObservableList<UserRatings> userRatingsList = FXCollections.observableArrayList();
 		while(rs.next()) {
-			asdf.add(new UserRatings(rs.getString("M.title"), rs.getDate("T.dateTime"), rs.getDouble("T.rating")));
+			userRatingsList.add(new UserRatings(rs.getString("M.title"), rs.getDate("T.dateTime"), rs.getDouble("T.rating")));
 		}
 		TableView<UserRatings>table = new TableView<UserRatings>();
 		table.setEditable(false);
@@ -235,7 +246,7 @@ public class Main extends Application {
 		rating.setCellValueFactory(
 				new PropertyValueFactory<UserRatings, Double>("rating"));
 
-		table.setItems(asdf);
+		table.setItems(userRatingsList);
 		table.getColumns().addAll(title, timeStamp, rating);
 
 		query = "SELECT G.genre FROM movie_genre AS G WHERE G.movieID IN (SELECT R.movieID FROM user_ratedmovies AS R WHERE R.userID = ?)";
@@ -272,10 +283,33 @@ public class Main extends Application {
 		userInfo.setAlignment(Pos.CENTER);
 
 		return userInfo;
-
 	}
 
 	private void seeTopMovies() throws SQLException{
+		root.getChildren().remove(2);
+
+		HBox topMoviesButtons = new HBox();
+		numEntries = new TextField();
+		numEntries.setPromptText("Top X Movies");
+		numEntries.setMinSize(150, 25);
+
+		Button search = new Button("Search");
+		search.setOnAction(e -> {
+			try {
+				getTopMovies();
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		});
+		search.setMinSize(150, 25);
+
+		topMoviesButtons.getChildren().addAll(numEntries,search);
+		topMoviesButtons.setAlignment(Pos.CENTER);
+
+		root.getChildren().add(topMoviesButtons);
+	}
+
+	public void getTopMovies() throws SQLException {
 		ArrayList<Movie> list = new ArrayList<>();
 
 		String query = "SELECT DISTINCT id, title, year, rtAudienceScore, rtPictureURL, imdbPictureURL, rtAudienceScore FROM movies ORDER BY rtAudienceScore DESC LIMIT ?";
@@ -359,13 +393,14 @@ public class Main extends Application {
 						fMovie.setScaleX(1);
 						fMovie.setScaleY(1);
 					});
+
+					fMovie.setPadding(new Insets(50,0,0,0));
 					movieList.getChildren().add(fMovie);
 				}
 				return movieList;
 			}
 		});
 
-		root.getChildren().remove(1);
 		root.getChildren().add(page);
 	}
 
