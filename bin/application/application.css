@@ -14,3 +14,12 @@
 .label {
 	-fx-text-fill:BLACK;
 }
+
+.chart-pie-label {
+	-fx-fill:BLACK;
+}
+
+.chart-pie-label-line {
+	-fx-stroke:BLACK;
+	-fx-fill:BLACK;
+}
