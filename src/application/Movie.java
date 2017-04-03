@@ -22,17 +22,33 @@ public class Movie {
 		this.year = new Label(""+year);
 		this.score = new Label(""+score);
 
-		Image rtImg = new Image(rtURL);
-		rtImgView = new ImageView(rtImg);
-		rtImgView.setFitWidth(500);
-		rtImgView.setFitHeight(250);
-		rtImgView.setPreserveRatio(true);
+		if(rtURL.equals("") || rtURL==null) {
+			Image rtImg = new Image("http://3.bp.blogspot.com/-EzsIA_YnyN4/T_h_W3IBAJI/AAAAAAAAFcM/v90MaP9pJAc/s1600/not_found-full.png");
+			rtImgView = new ImageView(rtImg);
+			rtImgView.setFitWidth(200);
+			rtImgView.setFitHeight(250);
+			rtImgView.setPreserveRatio(true);
+		} else {
+			Image rtImg = new Image(rtURL);
+			rtImgView = new ImageView(rtImg);
+			rtImgView.setFitWidth(200);
+			rtImgView.setFitHeight(250);
+			rtImgView.setPreserveRatio(true);
+		}
 
-		Image imdbImg = new Image(imdbURL);
-		imdbImgView = new ImageView(imdbImg);
-		imdbImgView.setFitWidth(500);
-		imdbImgView.setFitHeight(250);
-		imdbImgView.setPreserveRatio(true);
+		if(imdbURL.equals("") || imdbURL==null) {
+			Image imdbImg = new Image("http://3.bp.blogspot.com/-EzsIA_YnyN4/T_h_W3IBAJI/AAAAAAAAFcM/v90MaP9pJAc/s1600/not_found-full.png");
+			imdbImgView = new ImageView(imdbImg);
+			imdbImgView.setFitWidth(200);
+			imdbImgView.setFitHeight(250);
+			imdbImgView.setPreserveRatio(true);
+		} else {
+			Image imdbImg = new Image(imdbURL);
+			imdbImgView = new ImageView(imdbImg);
+			imdbImgView.setFitWidth(200);
+			imdbImgView.setFitHeight(250);
+			imdbImgView.setPreserveRatio(true);
+		}
 
 		VBox info = new VBox(5);
 		info.getChildren().addAll(this.title, this.year, this.score);

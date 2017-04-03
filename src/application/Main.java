@@ -56,6 +56,7 @@ public class Main extends Application {
 	protected VBox root;
 	protected GridPane login;
 	private ArrayList<VBox> selectedMovies = new ArrayList<>();
+	private ComboBox<String> genres;
 	private int UID;
 
 
@@ -443,13 +444,14 @@ public class Main extends Application {
 				"Thriller",
 				"War",
 				"Western");
-		ComboBox<String> genres = new ComboBox<>(genreList);
+		genres = new ComboBox<>(genreList);
+		genres.setMinSize(150, 25);
 
 		searchGenreButtons.getChildren().addAll(genres,searchButtons());
 
 		((ButtonBase)((HBox) searchGenreButtons.getChildren().get(1)).getChildren().get(1)).setOnAction(e -> {
 			try {
-				//getMoviesByGenre();
+				getMoviesByGenre();
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -460,6 +462,25 @@ public class Main extends Application {
 		searchGenreButtons.setAlignment(Pos.CENTER);
 
 		root.getChildren().add(searchGenreButtons);
+	}
+
+	public void getMoviesByGenre() throws SQLException {
+		ArrayList<Movie> list = new ArrayList<>();
+
+		String query = "SELECT DISTINCT id, title, year, rtAudienceScore, rtPictureURL, imdbPictureURL, rtAudienceScore FROM movies where id IN(SELECT movieID FROM movie_genre WHERE genre = ?) ORDER BY movies.rtAudienceScore DESC LIMIT ?";
+		PreparedStatement ps = con.prepareStatement(query);
+		ps.setString(1, genres.getSelectionModel().getSelectedItem());
+		ps.setInt(2, Integer.parseInt(numEntries.getText()));
+		ResultSet rs = ps.executeQuery();
+
+		while(rs.next()) {
+			list.add(new Movie(rs.getInt("id"), rs.getString("title"), rs.getInt("year"), rs.getInt("rtAudienceScore"), rs.getString("rtPictureURL"), rs.getString("imdbPictureURL")));
+		}
+
+		rs.close();
+		ps.close();
+
+		setPages(list);
 	}
 
 	public void searchByDirector() throws SQLException {
@@ -590,6 +611,11 @@ public class Main extends Application {
 	}
 
 	private void setPages(ArrayList<?> list) {
+		try {
+			root.getChildren().remove(3);
+		} catch (Exception e) {
+
+		}
 		int elementsPerPage = 5;
 		int pages = list.size()/elementsPerPage;
 		Pagination page = new Pagination(pages,0);
