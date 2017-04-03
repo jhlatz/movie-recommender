@@ -26,6 +26,8 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBase;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.TableColumn;
@@ -55,6 +57,7 @@ public class Main extends Application {
 	protected GridPane login;
 	private ArrayList<VBox> selectedMovies = new ArrayList<>();
 	private int UID;
+
 
 	@Override
 	public void start(Stage primaryStage) {
@@ -171,28 +174,72 @@ public class Main extends Application {
 
 		Button genre = new Button("Genre");
 		genre.setOnAction(e-> {
-			//Stuff
+			try {
+				root.getChildren().remove(3);
+				root.getChildren().remove(2);
+				searchByGenre();
+			} catch (Exception e1) {
+				root.getChildren().remove(2);
+				try {
+					searchByGenre();
+				} catch (Exception e2) {
+					e2.printStackTrace();
+				}
+			}
 		});
 		genre.setMinSize(150, 25);
 		buttons.add(genre, 3, 0);
 
 		Button directorName = new Button("Director");
 		directorName.setOnAction(e -> {
-			//Stuff
+			try {
+				root.getChildren().remove(3);
+				root.getChildren().remove(2);
+				searchByDirector();
+			} catch (Exception e1) {
+				root.getChildren().remove(2);
+				try {
+					searchByDirector();
+				} catch (Exception e2) {
+					e2.printStackTrace();
+				}
+			}
 		});
 		directorName.setMinSize(150, 25);
 		buttons.add(directorName, 4, 0);
 
 		Button actorName = new Button("Actor");
 		actorName.setOnAction(e -> {
-			//Stuff
+			try {
+				root.getChildren().remove(3);
+				root.getChildren().remove(2);
+				searchByActor();
+			} catch (Exception e1) {
+				root.getChildren().remove(2);
+				try {
+					searchByActor();
+				} catch (Exception e2) {
+					e2.printStackTrace();
+				}
+			}
 		});
 		actorName.setMinSize(150, 25);
 		buttons.add(actorName, 5, 0);
 
 		Button tags = new Button("Tags");
 		tags.setOnAction(e -> {
-			//Stuff
+			try {
+				root.getChildren().remove(3);
+				root.getChildren().remove(2);
+				searchByTag();
+			} catch (Exception e1) {
+				root.getChildren().remove(2);
+				try {
+					searchByTag();
+				} catch (Exception e2) {
+					e2.printStackTrace();
+				}
+			}
 		});
 		tags.setMinSize(150, 25);
 		buttons.add(tags, 6, 0);
@@ -200,9 +247,16 @@ public class Main extends Application {
 		Button topPopularDirectors = new Button("Top Popular Directors");
 		topPopularDirectors.setOnAction(e -> {
 			try {
+				root.getChildren().remove(3);
+				root.getChildren().remove(2);
 				seeTopDirectors();
-			} catch (SQLException e1) {
-				e1.printStackTrace();
+			} catch (Exception e1) {
+				root.getChildren().remove(2);
+				try {
+					seeTopDirectors();
+				} catch (Exception e2) {
+					e2.printStackTrace();
+				}
 			}
 		});
 		topPopularDirectors.setMinSize(150, 25);
@@ -210,7 +264,18 @@ public class Main extends Application {
 
 		Button topPopularActors = new Button("Top Popular Actors");
 		topPopularActors.setOnAction(e -> {
-			seeTopActors();
+			try {
+				root.getChildren().remove(3);
+				root.getChildren().remove(2);
+				seeTopActors();
+			} catch (Exception e1) {
+				root.getChildren().remove(2);
+				try {
+					seeTopActors();
+				} catch (Exception e2) {
+					e2.printStackTrace();
+				}
+			}
 		});
 		topPopularActors.setMinSize(150, 25);
 		buttons.add(topPopularActors, 8, 0);
@@ -305,25 +370,17 @@ public class Main extends Application {
 	}
 
 	private void seeTopMovies() throws SQLException{
+		HBox topMoviesButtons = searchButtons();
 
-		HBox topMoviesButtons = new HBox();
-		numEntries = new TextField();
 		numEntries.setPromptText("Top X Movies");
-		numEntries.setMinSize(150, 25);
 
-		Button search = new Button("Search");
-		search.setOnAction(e -> {
+		((ButtonBase) topMoviesButtons.getChildren().get(1)).setOnAction(e -> {
 			try {
 				getTopMovies();
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 		});
-		search.setMinSize(150, 25);
-
-		topMoviesButtons.getChildren().addAll(numEntries,search);
-		topMoviesButtons.setPadding(new Insets(10,10,10,10));
-		topMoviesButtons.setAlignment(Pos.CENTER);
 
 		root.getChildren().add(topMoviesButtons);
 	}
@@ -347,29 +404,129 @@ public class Main extends Application {
 	}
 
 	public void searchByTitle() throws SQLException {
-		HBox searchTitleButtons = new HBox();
-		numEntries = new TextField();
-		numEntries.setPromptText("Top X Movies");
-		numEntries.setMinSize(150, 25);
+		HBox searchTitleButtons = searchButtons();
 
-		Button search = new Button("Search");
-		search.setOnAction(e -> {
+		numEntries.setPromptText("Search By Title");
+
+		((ButtonBase) searchTitleButtons.getChildren().get(1)).setOnAction(e -> {
 			try {
-				//getMovies();
+				//getMoviesByTitle();
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 		});
-		search.setMinSize(150, 25);
-
-		searchTitleButtons.getChildren().addAll(numEntries,search);
-		searchTitleButtons.setPadding(new Insets(10,10,10,10));
-		searchTitleButtons.setAlignment(Pos.CENTER);
 
 		root.getChildren().add(searchTitleButtons);
 	}
 
-	private void seeTopDirectors() throws SQLException{
+	public void searchByGenre() throws SQLException {
+		HBox searchGenreButtons = new HBox(5);
+
+		ObservableList<String> genreList = FXCollections.observableArrayList(
+				"Action",
+				"Adventure",
+				"Animation",
+				"Children",
+				"Comedy",
+				"Crime",
+				"Documentary",
+				"Drama",
+				"Fantasy",
+				"Film-Noir",
+				"Horror",
+				"IMAX",
+				"Musical",
+				"Mystery",
+				"Romance",
+				"Sci-Fi",
+				"Short",
+				"Thriller",
+				"War",
+				"Western");
+		ComboBox<String> genres = new ComboBox<>(genreList);
+
+		searchGenreButtons.getChildren().addAll(genres,searchButtons());
+
+		((ButtonBase)((HBox) searchGenreButtons.getChildren().get(1)).getChildren().get(1)).setOnAction(e -> {
+			try {
+				//getMoviesByGenre();
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		});
+
+		numEntries.setPromptText("How Many Movies?");
+
+		searchGenreButtons.setAlignment(Pos.CENTER);
+
+		root.getChildren().add(searchGenreButtons);
+	}
+
+	public void searchByDirector() throws SQLException {
+		HBox searchDirectorButtons = searchButtons();
+
+		numEntries.setPromptText("Which Director");
+
+		((ButtonBase) searchDirectorButtons.getChildren().get(1)).setOnAction(e -> {
+			try {
+				//getMoviesByTitle();
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		});
+
+		root.getChildren().add(searchDirectorButtons);
+	}
+
+	public void searchByActor() throws SQLException {
+		HBox searchActorButtons = searchButtons();
+
+		numEntries.setPromptText("Which Actor");
+
+		((ButtonBase) searchActorButtons.getChildren().get(1)).setOnAction(e -> {
+			try {
+				//getMoviesByTitle();
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		});
+
+		root.getChildren().add(searchActorButtons);
+	}
+
+	public void searchByTag() throws SQLException {
+		HBox searchTagButtons = searchButtons();
+
+		numEntries.setPromptText("Which Tag");
+
+		((ButtonBase) searchTagButtons.getChildren().get(1)).setOnAction(e -> {
+			try {
+				//getMoviesByTitle();
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		});
+
+		root.getChildren().add(searchTagButtons);
+	}
+
+	public void seeTopDirectors() throws SQLException{
+		HBox topDirectorButtons = searchButtons();
+
+		numEntries.setPromptText("Directed How Many Movies?");
+
+		((ButtonBase) topDirectorButtons.getChildren().get(1)).setOnAction(e -> {
+			try {
+				//getMoviesByTitle();
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		});
+
+		root.getChildren().add(topDirectorButtons);
+	}
+
+	private void getTopDirectors() throws SQLException{
 		ArrayList<String> list = new ArrayList<>();
 
 		String query = "SELECT directorName, rtAllCriticsRating FROM movie_directors, movies WHERE movie_directors.movieID = movies.id";
@@ -388,7 +545,23 @@ public class Main extends Application {
 		setPages(list);
 	}
 
-	private void seeTopActors() {
+	private void seeTopActors() throws SQLException{
+		HBox topActorButtons = searchButtons();
+
+		numEntries.setPromptText("Acted in How Many Movies?");
+
+		((ButtonBase) topActorButtons.getChildren().get(1)).setOnAction(e -> {
+			try {
+				//getMoviesByTitle();
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		});
+
+		root.getChildren().add(topActorButtons);
+	}
+
+	private void getTopActors() throws SQLException{
 		ArrayList<String> list = new ArrayList<>();
 		try {
 			Scanner scan = new Scanner(new File("C:/Users/Jacob/Documents/My Classes/Fall 2016/Intro to Cyber Security/Workspace/Database_GUI/src/actors"));
@@ -400,6 +573,20 @@ public class Main extends Application {
 			System.out.println("File Not Found!");
 		}
 		setPages(list);
+	}
+
+	private HBox searchButtons() {
+		HBox buttons = new HBox(5);
+		numEntries = new TextField();
+		numEntries.setMinSize(150, 25);
+
+		Button search = new Button("Search");
+		search.setMinSize(150, 25);
+
+		buttons.getChildren().addAll(numEntries,search);
+		buttons.setAlignment(Pos.CENTER);
+
+		return buttons;
 	}
 
 	private void setPages(ArrayList<?> list) {
