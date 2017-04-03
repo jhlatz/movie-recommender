@@ -136,9 +136,16 @@ public class Main extends Application {
 		Button topMovies = new Button("Top Movies");
 		topMovies.setOnAction(e -> {
 			try {
+				root.getChildren().remove(3);
+				root.getChildren().remove(2);
 				seeTopMovies();
 			} catch (Exception e1) {
-				e1.printStackTrace();
+				root.getChildren().remove(2);
+				try {
+					seeTopMovies();
+				} catch (Exception e2) {
+					e2.printStackTrace();
+				}
 			}
 		});
 		topMovies.setMinSize(150, 25);
@@ -146,7 +153,18 @@ public class Main extends Application {
 
 		Button title = new Button("Title");
 		title.setOnAction(e -> {
-			System.out.println("stuff");
+			try {
+				root.getChildren().remove(3);
+				root.getChildren().remove(2);
+				searchByTitle();
+			} catch (Exception e1) {
+				root.getChildren().remove(2);
+				try {
+					searchByTitle();
+				} catch (Exception e2) {
+					e2.printStackTrace();
+				}
+			}
 		});
 		title.setMinSize(150, 25);
 		buttons.add(title, 2, 0);
@@ -278,15 +296,15 @@ public class Main extends Application {
 		breakdown.setPadding(new Insets(10,10,10,10));
 		breakdown.setAlignment(Pos.CENTER);
 
-		userInfo.getChildren().addAll(userID, breakdown);
+
 		userInfo.setPadding(new Insets(10,10,10,10));
+		userInfo.getChildren().addAll(userID, breakdown);
 		userInfo.setAlignment(Pos.CENTER);
 
 		return userInfo;
 	}
 
 	private void seeTopMovies() throws SQLException{
-		root.getChildren().remove(2);
 
 		HBox topMoviesButtons = new HBox();
 		numEntries = new TextField();
@@ -304,6 +322,7 @@ public class Main extends Application {
 		search.setMinSize(150, 25);
 
 		topMoviesButtons.getChildren().addAll(numEntries,search);
+		topMoviesButtons.setPadding(new Insets(10,10,10,10));
 		topMoviesButtons.setAlignment(Pos.CENTER);
 
 		root.getChildren().add(topMoviesButtons);
@@ -325,6 +344,29 @@ public class Main extends Application {
 		ps.close();
 
 		setPages(list);
+	}
+
+	public void searchByTitle() throws SQLException {
+		HBox searchTitleButtons = new HBox();
+		numEntries = new TextField();
+		numEntries.setPromptText("Top X Movies");
+		numEntries.setMinSize(150, 25);
+
+		Button search = new Button("Search");
+		search.setOnAction(e -> {
+			try {
+				//getMovies();
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		});
+		search.setMinSize(150, 25);
+
+		searchTitleButtons.getChildren().addAll(numEntries,search);
+		searchTitleButtons.setPadding(new Insets(10,10,10,10));
+		searchTitleButtons.setAlignment(Pos.CENTER);
+
+		root.getChildren().add(searchTitleButtons);
 	}
 
 	private void seeTopDirectors() throws SQLException{
