@@ -377,31 +377,27 @@ public class Main extends Application {
 
 		((ButtonBase) topMoviesButtons.getChildren().get(1)).setOnAction(e -> {
 			try {
-				getTopMovies();
+				ArrayList<Movie> list = new ArrayList<>();
+
+				String query = "SELECT DISTINCT id, title, year, rtAudienceScore, rtPictureURL, imdbPictureURL, rtAudienceScore FROM movies ORDER BY rtAudienceScore DESC LIMIT ?";
+				PreparedStatement ps = con.prepareStatement(query);
+				ps.setInt(1, Integer.parseInt(numEntries.getText()));
+				ResultSet rs = ps.executeQuery();
+
+				while(rs.next()) {
+					list.add(new Movie(rs.getInt("id"), rs.getString("title"), rs.getInt("year"), rs.getInt("rtAudienceScore"), rs.getString("rtPictureURL"), rs.getString("imdbPictureURL")));
+				}
+
+				rs.close();
+				ps.close();
+
+				setPages(list);
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 		});
 
 		root.getChildren().add(topMoviesButtons);
-	}
-
-	public void getTopMovies() throws SQLException {
-		ArrayList<Movie> list = new ArrayList<>();
-
-		String query = "SELECT DISTINCT id, title, year, rtAudienceScore, rtPictureURL, imdbPictureURL, rtAudienceScore FROM movies ORDER BY rtAudienceScore DESC LIMIT ?";
-		PreparedStatement ps = con.prepareStatement(query);
-		ps.setInt(1, Integer.parseInt(numEntries.getText()));
-		ResultSet rs = ps.executeQuery();
-
-		while(rs.next()) {
-			list.add(new Movie(rs.getInt("id"), rs.getString("title"), rs.getInt("year"), rs.getInt("rtAudienceScore"), rs.getString("rtPictureURL"), rs.getString("imdbPictureURL")));
-		}
-
-		rs.close();
-		ps.close();
-
-		setPages(list);
 	}
 
 	public void searchByTitle() throws SQLException {
@@ -411,31 +407,13 @@ public class Main extends Application {
 
 		((ButtonBase) searchTitleButtons.getChildren().get(1)).setOnAction(e -> {
 			try {
-				getMoviesByTitle();
+				getMoviesSPM("SELECT DISTINCT id, title, year, rtAudienceScore, rtPictureURL, imdbPictureURL, rtAudienceScore FROM movies where title LIKE ? ORDER BY movies.rtAudienceScore DESC");
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 		});
 
 		root.getChildren().add(searchTitleButtons);
-	}
-
-	public void getMoviesByTitle() throws SQLException {
-		ArrayList<Movie> list = new ArrayList<>();
-
-		String query = "SELECT DISTINCT id, title, year, rtAudienceScore, rtPictureURL, imdbPictureURL, rtAudienceScore FROM movies where title LIKE ? ORDER BY movies.rtAudienceScore DESC";
-		PreparedStatement ps = con.prepareStatement(query);
-		ps.setString(1, "%"+numEntries.getText()+"%");
-		ResultSet rs = ps.executeQuery();
-
-		while(rs.next()) {
-			list.add(new Movie(rs.getInt("id"), rs.getString("title"), rs.getInt("year"), rs.getInt("rtAudienceScore"), rs.getString("rtPictureURL"), rs.getString("imdbPictureURL")));
-		}
-
-		rs.close();
-		ps.close();
-
-		setPages(list);
 	}
 
 	public void searchByGenre() throws SQLException {
@@ -469,7 +447,22 @@ public class Main extends Application {
 
 		((ButtonBase)((HBox) searchGenreButtons.getChildren().get(1)).getChildren().get(1)).setOnAction(e -> {
 			try {
-				getMoviesByGenre();
+				ArrayList<Movie> list = new ArrayList<>();
+
+				String query = "SELECT DISTINCT id, title, year, rtAudienceScore, rtPictureURL, imdbPictureURL, rtAudienceScore FROM movies where id IN(SELECT movieID FROM movie_genre WHERE genre = ?) ORDER BY movies.rtAudienceScore DESC LIMIT ?";
+				PreparedStatement ps = con.prepareStatement(query);
+				ps.setString(1, genres.getSelectionModel().getSelectedItem());
+				ps.setInt(2, Integer.parseInt(numEntries.getText()));
+				ResultSet rs = ps.executeQuery();
+
+				while(rs.next()) {
+					list.add(new Movie(rs.getInt("id"), rs.getString("title"), rs.getInt("year"), rs.getInt("rtAudienceScore"), rs.getString("rtPictureURL"), rs.getString("imdbPictureURL")));
+				}
+
+				rs.close();
+				ps.close();
+
+				setPages(list);
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -482,25 +475,6 @@ public class Main extends Application {
 		root.getChildren().add(searchGenreButtons);
 	}
 
-	public void getMoviesByGenre() throws SQLException {
-		ArrayList<Movie> list = new ArrayList<>();
-
-		String query = "SELECT DISTINCT id, title, year, rtAudienceScore, rtPictureURL, imdbPictureURL, rtAudienceScore FROM movies where id IN(SELECT movieID FROM movie_genre WHERE genre = ?) ORDER BY movies.rtAudienceScore DESC LIMIT ?";
-		PreparedStatement ps = con.prepareStatement(query);
-		ps.setString(1, genres.getSelectionModel().getSelectedItem());
-		ps.setInt(2, Integer.parseInt(numEntries.getText()));
-		ResultSet rs = ps.executeQuery();
-
-		while(rs.next()) {
-			list.add(new Movie(rs.getInt("id"), rs.getString("title"), rs.getInt("year"), rs.getInt("rtAudienceScore"), rs.getString("rtPictureURL"), rs.getString("imdbPictureURL")));
-		}
-
-		rs.close();
-		ps.close();
-
-		setPages(list);
-	}
-
 	public void searchByDirector() throws SQLException {
 		HBox searchDirectorButtons = searchButtons();
 
@@ -508,30 +482,13 @@ public class Main extends Application {
 
 		((ButtonBase) searchDirectorButtons.getChildren().get(1)).setOnAction(e -> {
 			try {
-				getMoviesByDirector();
+				getMoviesSPM("SELECT DISTINCT m.id, m.title, m.year, m.rtAudienceScore, m.imdbPictureURL, m.rtPictureURL FROM movies m, movie_directors d WHERE m.id = d.movieID AND d.directorName LIKE ?");
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 		});
 
 		root.getChildren().add(searchDirectorButtons);
-	}
-
-	public void getMoviesByDirector() throws SQLException {
-		ArrayList<Movie> list = new ArrayList<>();
-		String query = "SELECT DISTINCT m.id, m.title, m.year, m.rtAudienceScore, m.imdbPictureURL, m.rtPictureURL FROM movies m, movie_directors d WHERE m.id = d.movieID AND d.directorName LIKE ?";
-		PreparedStatement ps = con.prepareStatement(query);
-		ps.setString(1, "%"+numEntries.getText()+"%");
-		ResultSet rs = ps.executeQuery();
-
-		while(rs.next()) {
-			list.add(new Movie(rs.getInt("id"), rs.getString("title"), rs.getInt("year"), rs.getInt("rtAudienceScore"), rs.getString("rtPictureURL"), rs.getString("imdbPictureURL")));
-		}
-
-		rs.close();
-		ps.close();
-
-		setPages(list);
 	}
 
 	public void searchByActor() throws SQLException {
@@ -541,30 +498,13 @@ public class Main extends Application {
 
 		((ButtonBase) searchActorButtons.getChildren().get(1)).setOnAction(e -> {
 			try {
-				getMoviesByActor();
+				getMoviesSPM("SELECT DISTINCT m.id, m.title, m.year, m.rtAudienceScore, m.imdbPictureURL, m.rtPictureURL FROM movies m, movie_actors a WHERE m.id = a.movieID AND a.actorName LIKE ?");
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 		});
 
 		root.getChildren().add(searchActorButtons);
-	}
-
-	public void getMoviesByActor() throws SQLException {
-		ArrayList<Movie> list = new ArrayList<>();
-		String query = "SELECT DISTINCT m.id, m.title, m.year, m.rtAudienceScore, m.imdbPictureURL, m.rtPictureURL FROM movies m, movie_actors a WHERE m.id = a.movieID AND a.actorName LIKE ?";
-		PreparedStatement ps = con.prepareStatement(query);
-		ps.setString(1, "%"+numEntries.getText()+"%");
-		ResultSet rs = ps.executeQuery();
-
-		while(rs.next()) {
-			list.add(new Movie(rs.getInt("id"), rs.getString("title"), rs.getInt("year"), rs.getInt("rtAudienceScore"), rs.getString("rtPictureURL"), rs.getString("imdbPictureURL")));
-		}
-
-		rs.close();
-		ps.close();
-
-		setPages(list);
 	}
 
 	public void searchByTag() throws SQLException {
@@ -574,30 +514,13 @@ public class Main extends Application {
 
 		((ButtonBase) searchTagButtons.getChildren().get(1)).setOnAction(e -> {
 			try {
-				getMoviesByTags();
+				getMoviesSPM("SELECT DISTINCT m.id, m.title, m.year, m.rtAudienceScore, m.imdbPictureURL, m.rtPictureURL FROM movies m, movie_tags mt, tags t WHERE m.id = mt.movieID AND mt.tagID = t.id AND t.value LIKE ?");
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 		});
 
 		root.getChildren().add(searchTagButtons);
-	}
-
-	public void getMoviesByTags() throws SQLException {
-		ArrayList<Movie> list = new ArrayList<>();
-		String query = "SELECT DISTINCT m.id, m.title, m.year, m.rtAudienceScore, m.imdbPictureURL, m.rtPictureURL FROM movies m, movie_tags mt, tags t WHERE m.id = mt.movieID AND mt.tagID = t.id AND t.value LIKE ?";
-		PreparedStatement ps = con.prepareStatement(query);
-		ps.setString(1, "%"+numEntries.getText()+"%");
-		ResultSet rs = ps.executeQuery();
-
-		while(rs.next()) {
-			list.add(new Movie(rs.getInt("id"), rs.getString("title"), rs.getInt("year"), rs.getInt("rtAudienceScore"), rs.getString("rtPictureURL"), rs.getString("imdbPictureURL")));
-		}
-
-		rs.close();
-		ps.close();
-
-		setPages(list);
 	}
 
 	public void seeTopDirectors() throws SQLException{
@@ -664,6 +587,22 @@ public class Main extends Application {
 			System.out.println("File Not Found!");
 		}
 		//setPages(list);
+	}
+
+	public void getMoviesSPM(String query) throws SQLException{
+		ArrayList<Movie> list = new ArrayList<>();
+		PreparedStatement ps = con.prepareStatement(query);
+		ps.setString(1, "%"+numEntries.getText()+"%");
+		ResultSet rs = ps.executeQuery();
+
+		while(rs.next()) {
+			list.add(new Movie(rs.getInt("id"), rs.getString("title"), rs.getInt("year"), rs.getInt("rtAudienceScore"), rs.getString("rtPictureURL"), rs.getString("imdbPictureURL")));
+		}
+
+		rs.close();
+		ps.close();
+
+		setPages(list);
 	}
 
 	private HBox searchButtons() {
