@@ -55,7 +55,7 @@ public class Main extends Application {
 	protected Label txtInfo;
 	protected VBox root;
 	protected GridPane login;
-	private ArrayList<VBox> selectedMovies = new ArrayList<>();
+	private ArrayList<Movie> selectedMovies = new ArrayList<>();
 	private ComboBox<String> genres;
 	private int UID;
 
@@ -101,7 +101,7 @@ public class Main extends Application {
 			menu = new Scene(root);
 			menu.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			stage.setScene(menu);
-			stage.setMaximized(true);
+			//stage.setMaximized(true);
 		}
 	}
 
@@ -411,13 +411,31 @@ public class Main extends Application {
 
 		((ButtonBase) searchTitleButtons.getChildren().get(1)).setOnAction(e -> {
 			try {
-				//getMoviesByTitle();
+				getMoviesByTitle();
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 		});
 
 		root.getChildren().add(searchTitleButtons);
+	}
+
+	public void getMoviesByTitle() throws SQLException {
+		ArrayList<Movie> list = new ArrayList<>();
+
+		String query = "SELECT DISTINCT id, title, year, rtAudienceScore, rtPictureURL, imdbPictureURL, rtAudienceScore FROM movies where title LIKE ? ORDER BY movies.rtAudienceScore DESC";
+		PreparedStatement ps = con.prepareStatement(query);
+		ps.setString(1, "%"+numEntries.getText()+"%");
+		ResultSet rs = ps.executeQuery();
+
+		while(rs.next()) {
+			list.add(new Movie(rs.getInt("id"), rs.getString("title"), rs.getInt("year"), rs.getInt("rtAudienceScore"), rs.getString("rtPictureURL"), rs.getString("imdbPictureURL")));
+		}
+
+		rs.close();
+		ps.close();
+
+		setPages(list);
 	}
 
 	public void searchByGenre() throws SQLException {
@@ -503,7 +521,7 @@ public class Main extends Application {
 		ArrayList<Movie> list = new ArrayList<>();
 		String query = "SELECT DISTINCT m.id, m.title, m.year, m.rtAudienceScore, m.imdbPictureURL, m.rtPictureURL FROM movies m, movie_directors d WHERE m.id = d.movieID AND d.directorName LIKE ?";
 		PreparedStatement ps = con.prepareStatement(query);
-		ps.setString(1, numEntries.getText());
+		ps.setString(1, "%"+numEntries.getText()+"%");
 		ResultSet rs = ps.executeQuery();
 
 		while(rs.next()) {
@@ -536,7 +554,7 @@ public class Main extends Application {
 		ArrayList<Movie> list = new ArrayList<>();
 		String query = "SELECT DISTINCT m.id, m.title, m.year, m.rtAudienceScore, m.imdbPictureURL, m.rtPictureURL FROM movies m, movie_actors a WHERE m.id = a.movieID AND a.actorName LIKE ?";
 		PreparedStatement ps = con.prepareStatement(query);
-		ps.setString(1, numEntries.getText());
+		ps.setString(1, "%"+numEntries.getText()+"%");
 		ResultSet rs = ps.executeQuery();
 
 		while(rs.next()) {
@@ -548,7 +566,7 @@ public class Main extends Application {
 
 		setPages(list);
 	}
-	
+
 	public void searchByTag() throws SQLException {
 		HBox searchTagButtons = searchButtons();
 
@@ -569,7 +587,7 @@ public class Main extends Application {
 		ArrayList<Movie> list = new ArrayList<>();
 		String query = "SELECT DISTINCT m.id, m.title, m.year, m.rtAudienceScore, m.imdbPictureURL, m.rtPictureURL FROM movies m, movie_tags mt, tags t WHERE m.id = mt.movieID AND mt.tagID = t.id AND t.value LIKE ?";
 		PreparedStatement ps = con.prepareStatement(query);
-		ps.setString(1, numEntries.getText());
+		ps.setString(1, "%"+numEntries.getText()+"%");
 		ResultSet rs = ps.executeQuery();
 
 		while(rs.next()) {
@@ -581,7 +599,7 @@ public class Main extends Application {
 
 		setPages(list);
 	}
-	
+
 	public void seeTopDirectors() throws SQLException{
 		HBox topDirectorButtons = searchButtons();
 
@@ -589,7 +607,7 @@ public class Main extends Application {
 
 		((ButtonBase) topDirectorButtons.getChildren().get(1)).setOnAction(e -> {
 			try {
-				//getMoviesByTitle();
+				getTopDirectors();
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -601,20 +619,21 @@ public class Main extends Application {
 	private void getTopDirectors() throws SQLException{
 		ArrayList<String> list = new ArrayList<>();
 
-		String query = "SELECT directorName, rtAllCriticsRating FROM movie_directors, movies WHERE movie_directors.movieID = movies.id";
+		String query = "SELECT DISTINCT md.directorName, m.rtAllCriticsRating FROM movie_directors md, movies m WHERE (SELECT count(*) FROM movie_directors md, movies m WHERE md.movieID = m.id) >= ? ORDER BY (SELECT AVG(rtAllCriticsRating) FROM movie_directors md, movies m WHERE md.movieID = m.id) LIMIT 10";
 		PreparedStatement ps = con.prepareStatement(query);
 		ps.setInt(1, Integer.parseInt(numEntries.getText()));
 
 		ResultSet rs = ps.executeQuery();
 
 		while(rs.next()) {
-			list.add(rs.getString("directorName"));
+			list.add(rs.getString("md.directorName"));
+			System.out.println(rs.getString("md.directorName"));
 		}
 
 		rs.close();
 		ps.close();
 
-		setPages(list);
+		//setPages(list);
 	}
 
 	private void seeTopActors() throws SQLException{
@@ -644,7 +663,7 @@ public class Main extends Application {
 		} catch (FileNotFoundException e) {
 			System.out.println("File Not Found!");
 		}
-		setPages(list);
+		//setPages(list);
 	}
 
 	private HBox searchButtons() {
@@ -661,47 +680,63 @@ public class Main extends Application {
 		return buttons;
 	}
 
-	private void setPages(ArrayList<?> list) {
+	private void setPages(ArrayList<Movie> list) {
 		try {
 			root.getChildren().remove(3);
 		} catch (Exception e) {
 
 		}
-		int elementsPerPage = 3;
+		int elementsPerPage = 5;
 		int pages = list.size()/elementsPerPage;
+		if(list.size()%elementsPerPage != 0) {
+			pages++;
+		}
+
 		Pagination page = new Pagination(pages,0);
 		page.setPageFactory(new Callback<Integer, Node>() {
 			public Node call(Integer pageIndex) {
 				HBox movieList = new HBox(5);
 				int currPage = pageIndex*elementsPerPage;
 				for(int i=currPage; i < currPage+elementsPerPage; i++){
-					final VBox fMovie = ((Movie) list.get(i)).getMovie();
-					fMovie.setOnMouseClicked(e -> {
-						if(!selectedMovies.contains(fMovie) ) {
-							selectedMovies.add(fMovie);
-							fMovie.setStyle("-fx-padding: 2;" +
-				                      		"-fx-border-style: solid inside;" +
-				                      		"-fx-border-width: 2;" +
-				                      		"-fx-border-insets: 5;" +
-				                      		"-fx-border-radius: 5;" +
-											"-fx-border-color: blue;");
-						} else {
-							selectedMovies.remove(fMovie);
-							fMovie.setStyle(null);
+					if(i < list.size()) {
+						final Movie fMovie = list.get(i);
+						if(selectedMovies.contains(fMovie)) {
+							fMovie.getMovie().setStyle("-fx-padding: 2;" +
+		                      		"-fx-border-style: solid inside;" +
+		                      		"-fx-border-width: 2;" +
+		                      		"-fx-border-insets: 5;" +
+		                      		"-fx-border-radius: 5;" +
+									"-fx-border-color: blue;");
 						}
-					});
-					fMovie.setOnMouseEntered(e -> {
-						fMovie.setScaleX(1.2);
-						fMovie.setScaleY(1.2);
+						fMovie.getMovie().setOnMouseClicked(e -> {
+							if(!selectedMovies.contains(fMovie) ) {
+								selectedMovies.add(fMovie);
+								fMovie.getMovie().setStyle("-fx-padding: 2;" +
+					                      		"-fx-border-style: solid inside;" +
+					                      		"-fx-border-width: 2;" +
+					                      		"-fx-border-insets: 5;" +
+					                      		"-fx-border-radius: 5;" +
+												"-fx-border-color: blue;");
+							} else {
+								selectedMovies.remove(fMovie);
+								fMovie.getMovie().setStyle(null);
+							}
+						});
+						fMovie.getMovie().setOnMouseEntered(e -> {
+							fMovie.getMovie().setScaleX(1.2);
+							fMovie.getMovie().setScaleY(1.2);
 
-					});
-					fMovie.setOnMouseExited(e -> {
-						fMovie.setScaleX(1);
-						fMovie.setScaleY(1);
-					});
+						});
+						fMovie.getMovie().setOnMouseExited(e -> {
+							fMovie.getMovie().setScaleX(1);
+							fMovie.getMovie().setScaleY(1);
+						});
 
-					fMovie.setPadding(new Insets(50,0,0,0));
-					movieList.getChildren().add(fMovie);
+						fMovie.getMovie().setPadding(new Insets(50,0,0,0));
+						movieList.getChildren().add(fMovie.getMovie());
+					} else {
+						movieList.getChildren().addAll(new Movie().getMovie());
+					}
 				}
 				return movieList;
 			}

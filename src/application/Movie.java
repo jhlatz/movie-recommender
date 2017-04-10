@@ -15,6 +15,10 @@ public class Movie {
 	private ArrayList<String> tags;
 	private int id;
 
+	public Movie() {
+		view = new VBox(5);
+	}
+
 	public Movie (int id, String title, int  year, int score, String rtURL, String imdbURL) {
 		this.id = id;
 
@@ -67,5 +71,18 @@ public class Movie {
 	public int getID() {
 		return id;
 	}
+	
+	@Override
+	public boolean equals(Object movie) {
+		boolean isEqual = false;
+		if(movie != null && movie instanceof Movie) {
+			isEqual = (this.id == ((Movie)movie).id);
+		}
+		return isEqual;
+	}
 
+	@Override
+	public int hashCode() {
+		return this.id;
+	}
 }
