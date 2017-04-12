@@ -1,19 +1,33 @@
 package application;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 
+import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 
 public class Movie {
+	private static final String url = "jdbc:mysql://144.217.243.209:3306/project?useSSL=true";
+	private static final String user = "project";
+	private static final String password = "letmeinplease";
+
+	private static Connection con;
+
 	private Label title, year, score;
 	private ImageView rtImgView, imdbImgView;
 	private VBox view;
-	private ArrayList<String> tags;
+	private ArrayList<Label> tags = new ArrayList<>();
 	private int id;
+	private String t;
 
 	public Movie() {
 		view = new VBox(5);
@@ -23,6 +37,7 @@ public class Movie {
 		this.id = id;
 
 		this.title = new Label(title);
+		this.t = title;
 		this.year = new Label(""+year);
 		this.score = new Label(""+score);
 
@@ -60,8 +75,35 @@ public class Movie {
 		HBox images = new HBox(5);
 		images.getChildren().addAll(rtImgView, imdbImgView);
 
+
+		try {
+			con = DriverManager.getConnection(url, user, password);
+			PreparedStatement ps = con.prepareStatement("SELECT t.Value FROM tags AS t JOIN movie_tags AS mt ON mt.tagID = t.id JOIN movies AS m ON m.id = mt.movieID WHERE m.title LIKE ?");
+			ps.setString(1, t);
+			ResultSet rs = ps.executeQuery();
+
+			while(rs.next()) {
+				Label tag = new Label(rs.getString("t.Value"));
+				tag.setStyle("-fx-background-radius: 5 5 5 5;"
+						+ "-fx-background-color: #8FBCA4;"
+						+ "-fx-padding: 2;");
+				tags.add(tag);
+			}
+
+			rs.close();
+			ps.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		FlowPane tagsView = new FlowPane();
+		tagsView.setPadding(new Insets(5,5,5,5));
+		tagsView.setHgap(2);
+		tagsView.setVgap(2);
+		tagsView.getChildren().addAll(tags);
+
 		view = new VBox(5);
-		view.getChildren().addAll(info, images);
+		view.getChildren().addAll(info, images, tagsView);
 	}
 
 	public VBox getMovie() {
@@ -71,7 +113,7 @@ public class Movie {
 	public int getID() {
 		return id;
 	}
-	
+
 	@Override
 	public boolean equals(Object movie) {
 		boolean isEqual = false;

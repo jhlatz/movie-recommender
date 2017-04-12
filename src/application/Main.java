@@ -29,6 +29,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -135,6 +136,7 @@ public class Main extends Application {
 			}
 		});
 		userInfo.setMinSize(150, 25);
+		userInfo.setMaxSize(150, 25);
 		buttons.add(userInfo, 0, 0);
 
 		Button topMovies = new Button("Top Movies");
@@ -153,6 +155,7 @@ public class Main extends Application {
 			}
 		});
 		topMovies.setMinSize(150, 25);
+		topMovies.setMaxSize(150, 25);
 		buttons.add(topMovies, 1, 0);
 
 		Button title = new Button("Title");
@@ -171,6 +174,7 @@ public class Main extends Application {
 			}
 		});
 		title.setMinSize(150, 25);
+		title.setMaxSize(150, 25);
 		buttons.add(title, 2, 0);
 
 		Button genre = new Button("Genre");
@@ -189,6 +193,7 @@ public class Main extends Application {
 			}
 		});
 		genre.setMinSize(150, 25);
+		genre.setMaxSize(150, 25);
 		buttons.add(genre, 3, 0);
 
 		Button directorName = new Button("Director");
@@ -207,6 +212,7 @@ public class Main extends Application {
 			}
 		});
 		directorName.setMinSize(150, 25);
+		directorName.setMaxSize(150, 25);
 		buttons.add(directorName, 4, 0);
 
 		Button actorName = new Button("Actor");
@@ -225,6 +231,7 @@ public class Main extends Application {
 			}
 		});
 		actorName.setMinSize(150, 25);
+		actorName.setMaxSize(150, 25);
 		buttons.add(actorName, 5, 0);
 
 		Button tags = new Button("Tags");
@@ -243,6 +250,7 @@ public class Main extends Application {
 			}
 		});
 		tags.setMinSize(150, 25);
+		tags.setMaxSize(150, 25);
 		buttons.add(tags, 6, 0);
 
 		Button topPopularDirectors = new Button("Top Popular Directors");
@@ -261,6 +269,7 @@ public class Main extends Application {
 			}
 		});
 		topPopularDirectors.setMinSize(150, 25);
+		topPopularDirectors.setMaxSize(150, 25);
 		buttons.add(topPopularDirectors, 7, 0);
 
 		Button topPopularActors = new Button("Top Popular Actors");
@@ -279,6 +288,7 @@ public class Main extends Application {
 			}
 		});
 		topPopularActors.setMinSize(150, 25);
+		topPopularActors.setMaxSize(150, 25);
 		buttons.add(topPopularActors, 8, 0);
 
 		VBox buildInfo = null;
@@ -294,6 +304,7 @@ public class Main extends Application {
 		return menu;
 	}
 
+	//Query 9
 	@SuppressWarnings("unchecked")
 	private VBox buildBreakdown() throws SQLException{
 		VBox userInfo = new VBox();
@@ -326,7 +337,7 @@ public class Main extends Application {
 				new PropertyValueFactory<UserRatings, Date>("time"));
 
 		TableColumn<UserRatings, Double> rating = new TableColumn<UserRatings, Double>("Rating");
-		rating.setMinWidth(100);
+		rating.setMinWidth(80);
 		rating.setCellValueFactory(
 				new PropertyValueFactory<UserRatings, Double>("rating"));
 
@@ -370,6 +381,7 @@ public class Main extends Application {
 		return userInfo;
 	}
 
+	//Query 1
 	private void seeTopMovies() throws SQLException{
 		HBox topMoviesButtons = searchButtons();
 
@@ -400,6 +412,7 @@ public class Main extends Application {
 		root.getChildren().add(topMoviesButtons);
 	}
 
+	//Query 2
 	public void searchByTitle() throws SQLException {
 		HBox searchTitleButtons = searchButtons();
 
@@ -416,6 +429,7 @@ public class Main extends Application {
 		root.getChildren().add(searchTitleButtons);
 	}
 
+	//Query 3
 	public void searchByGenre() throws SQLException {
 		HBox searchGenreButtons = new HBox(5);
 
@@ -475,6 +489,7 @@ public class Main extends Application {
 		root.getChildren().add(searchGenreButtons);
 	}
 
+	//Query 4
 	public void searchByDirector() throws SQLException {
 		HBox searchDirectorButtons = searchButtons();
 
@@ -491,6 +506,7 @@ public class Main extends Application {
 		root.getChildren().add(searchDirectorButtons);
 	}
 
+	//Query 5
 	public void searchByActor() throws SQLException {
 		HBox searchActorButtons = searchButtons();
 
@@ -507,6 +523,7 @@ public class Main extends Application {
 		root.getChildren().add(searchActorButtons);
 	}
 
+	//Query 6
 	public void searchByTag() throws SQLException {
 		HBox searchTagButtons = searchButtons();
 
@@ -523,6 +540,7 @@ public class Main extends Application {
 		root.getChildren().add(searchTagButtons);
 	}
 
+	//Query 7
 	public void seeTopDirectors() throws SQLException{
 		HBox topDirectorButtons = searchButtons();
 
@@ -530,7 +548,7 @@ public class Main extends Application {
 
 		((ButtonBase) topDirectorButtons.getChildren().get(1)).setOnAction(e -> {
 			try {
-				getTopDirectors();
+				getPopular("SELECT d.directorName FROM movie_directors AS d JOIN movies AS m ON m.id = d.movieID WHERE d.directorName IN (SELECT d.directorName FROM movie_directors AS d GROUP BY d.directorName HAVING COUNT(*) >?) ORDER BY m.rtAudienceScore LIMIT 10");
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -539,26 +557,7 @@ public class Main extends Application {
 		root.getChildren().add(topDirectorButtons);
 	}
 
-	private void getTopDirectors() throws SQLException{
-		ArrayList<String> list = new ArrayList<>();
-
-		String query = "SELECT DISTINCT md.directorName, m.rtAllCriticsRating FROM movie_directors md, movies m WHERE (SELECT count(*) FROM movie_directors md, movies m WHERE md.movieID = m.id) >= ? ORDER BY (SELECT AVG(rtAllCriticsRating) FROM movie_directors md, movies m WHERE md.movieID = m.id) LIMIT 10";
-		PreparedStatement ps = con.prepareStatement(query);
-		ps.setInt(1, Integer.parseInt(numEntries.getText()));
-
-		ResultSet rs = ps.executeQuery();
-
-		while(rs.next()) {
-			list.add(rs.getString("md.directorName"));
-			System.out.println(rs.getString("md.directorName"));
-		}
-
-		rs.close();
-		ps.close();
-
-		//setPages(list);
-	}
-
+	//Query 8
 	private void seeTopActors() throws SQLException{
 		HBox topActorButtons = searchButtons();
 
@@ -566,27 +565,13 @@ public class Main extends Application {
 
 		((ButtonBase) topActorButtons.getChildren().get(1)).setOnAction(e -> {
 			try {
-				//getMoviesByTitle();
+				getPopular("SELECT a.actorName FROM movie_actors AS a JOIN movies AS m ON m.id = a.movieID WHERE a.actorName IN (SELECT a.actorName FROM movie_actors AS a GROUP BY a.actorName HAVING COUNT(*) >?) ORDER BY m.rtAudienceScore LIMIT 10");
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 		});
 
 		root.getChildren().add(topActorButtons);
-	}
-
-	private void getTopActors() throws SQLException{
-		ArrayList<String> list = new ArrayList<>();
-		try {
-			Scanner scan = new Scanner(new File("C:/Users/Jacob/Documents/My Classes/Fall 2016/Intro to Cyber Security/Workspace/Database_GUI/src/actors"));
-			while(scan.hasNextLine()) {
-				list.add(scan.nextLine());
-			}
-			scan.close();
-		} catch (FileNotFoundException e) {
-			System.out.println("File Not Found!");
-		}
-		//setPages(list);
 	}
 
 	public void getMoviesSPM(String query) throws SQLException{
@@ -605,12 +590,40 @@ public class Main extends Application {
 		setPages(list);
 	}
 
+	public void getPopular(String query) throws SQLException {
+		ObservableList<String> list =  FXCollections.observableArrayList();
+
+		PreparedStatement ps = con.prepareStatement(query);
+		ps.setInt(1, Integer.parseInt(numEntries.getText()));
+
+		ResultSet rs = ps.executeQuery();
+
+		while(rs.next()) {
+			list.add(rs.getString(1));
+		}
+
+		rs.close();
+		ps.close();
+
+		ListView<String> listView = new ListView<String>(list);
+		listView.setMaxSize(150, 232);
+
+		try {
+			root.getChildren().remove(3);
+		} catch (Exception e) {
+
+		}
+		root.getChildren().add(listView);
+	}
+
 	private HBox searchButtons() {
 		HBox buttons = new HBox(5);
 		numEntries = new TextField();
+		numEntries.setMaxSize(150, 25);
 		numEntries.setMinSize(150, 25);
 
 		Button search = new Button("Search");
+		search.setMaxSize(150, 25);
 		search.setMinSize(150, 25);
 
 		buttons.getChildren().addAll(numEntries,search);
