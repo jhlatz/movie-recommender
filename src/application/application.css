@@ -4,7 +4,11 @@
 }
 
 .button {
-	-fx-graphic: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRwQQfypjqBrhQ0Fwt4DHi8i33bfJvVgBeqY0i3D153Gmmo6D_E');
+	-fx-background-color:#738e7e;
+}
+
+.button:hover {
+	-fx-background-color: linear-gradient(#738e7e, #303d35);
 }
 
 .label {

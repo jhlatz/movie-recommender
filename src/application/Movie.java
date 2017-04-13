@@ -113,6 +113,9 @@ public class Movie {
 	public int getID() {
 		return id;
 	}
+	public String getTitle() {
+		return t;
+	}
 
 	@Override
 	public boolean equals(Object movie) {

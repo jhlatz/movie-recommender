@@ -1,7 +1,5 @@
 package application;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.Date;
@@ -12,8 +10,8 @@ import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.Scanner;
 
 import javafx.application.Application;
 import javafx.collections.FXCollections;
@@ -136,7 +134,6 @@ public class Main extends Application {
 			}
 		});
 		userInfo.setMinSize(150, 25);
-		userInfo.setMaxSize(150, 25);
 		buttons.add(userInfo, 0, 0);
 
 		Button topMovies = new Button("Top Movies");
@@ -155,7 +152,6 @@ public class Main extends Application {
 			}
 		});
 		topMovies.setMinSize(150, 25);
-		topMovies.setMaxSize(150, 25);
 		buttons.add(topMovies, 1, 0);
 
 		Button title = new Button("Title");
@@ -174,7 +170,6 @@ public class Main extends Application {
 			}
 		});
 		title.setMinSize(150, 25);
-		title.setMaxSize(150, 25);
 		buttons.add(title, 2, 0);
 
 		Button genre = new Button("Genre");
@@ -193,7 +188,6 @@ public class Main extends Application {
 			}
 		});
 		genre.setMinSize(150, 25);
-		genre.setMaxSize(150, 25);
 		buttons.add(genre, 3, 0);
 
 		Button directorName = new Button("Director");
@@ -212,7 +206,6 @@ public class Main extends Application {
 			}
 		});
 		directorName.setMinSize(150, 25);
-		directorName.setMaxSize(150, 25);
 		buttons.add(directorName, 4, 0);
 
 		Button actorName = new Button("Actor");
@@ -231,7 +224,6 @@ public class Main extends Application {
 			}
 		});
 		actorName.setMinSize(150, 25);
-		actorName.setMaxSize(150, 25);
 		buttons.add(actorName, 5, 0);
 
 		Button tags = new Button("Tags");
@@ -250,7 +242,6 @@ public class Main extends Application {
 			}
 		});
 		tags.setMinSize(150, 25);
-		tags.setMaxSize(150, 25);
 		buttons.add(tags, 6, 0);
 
 		Button topPopularDirectors = new Button("Top Popular Directors");
@@ -269,7 +260,6 @@ public class Main extends Application {
 			}
 		});
 		topPopularDirectors.setMinSize(150, 25);
-		topPopularDirectors.setMaxSize(150, 25);
 		buttons.add(topPopularDirectors, 7, 0);
 
 		Button topPopularActors = new Button("Top Popular Actors");
@@ -288,8 +278,25 @@ public class Main extends Application {
 			}
 		});
 		topPopularActors.setMinSize(150, 25);
-		topPopularActors.setMaxSize(150, 25);
 		buttons.add(topPopularActors, 8, 0);
+
+		Button recommendations = new Button("Recommendations");
+		recommendations.setOnAction(e -> {
+			try {
+				root.getChildren().remove(3);
+				root.getChildren().remove(2);
+				seeTopActors();
+			} catch (Exception e1) {
+				root.getChildren().remove(2);
+				try {
+					seeRecommendations();
+				} catch (Exception e2) {
+					e2.printStackTrace();
+				}
+			}
+		});
+		recommendations.setMinSize(150, 25);
+		buttons.add(recommendations, 9, 0);
 
 		VBox buildInfo = null;
 		try {
@@ -455,6 +462,7 @@ public class Main extends Application {
 				"War",
 				"Western");
 		genres = new ComboBox<>(genreList);
+		genres.getSelectionModel().selectFirst();
 		genres.setMinSize(150, 25);
 
 		searchGenreButtons.getChildren().addAll(genres,searchButtons());
@@ -572,6 +580,84 @@ public class Main extends Application {
 		});
 
 		root.getChildren().add(topActorButtons);
+	}
+
+	//Recommendations
+	private void seeRecommendations(){
+		HBox recommendations = new HBox(5);
+
+		Button byGenre = new Button("By Genre");
+		byGenre.setOnAction(e ->{
+			try {
+				ArrayList<Movie> list = new ArrayList<>();
+				HashSet<String> genres = new HashSet<>();
+				for(Movie m : selectedMovies) {
+					PreparedStatement ps = con.prepareStatement("SELECT g.genre FROM movie_genre AS g JOIN movies AS m ON m.id = g.movieID WHERE m.title LIKE ?");
+					ps.setString(1, m.getTitle());
+					ResultSet rs = ps.executeQuery();
+					while(rs.next()) {
+						genres.add(rs.getString("g.genre"));
+					}
+					rs.close();
+					ps.close();
+				}
+
+				for(String g : genres) {
+					PreparedStatement ps = con.prepareStatement("SELECT DISTINCT id, title, year, rtAudienceScore, rtPictureURL, imdbPictureURL, rtAudienceScore FROM movies where id IN(SELECT movieID FROM movie_genre WHERE genre = ?) ORDER BY movies.rtAudienceScore DESC LIMIT 5");
+					ps.setString(1, g);
+					ResultSet rs = ps.executeQuery();
+					while(rs.next()) {
+						list.add(new Movie(rs.getInt("id"), rs.getString("title"), rs.getInt("year"), rs.getInt("rtAudienceScore"), rs.getString("rtPictureURL"), rs.getString("imdbPictureURL")));
+					}
+					rs.close();
+					ps.close();
+				}
+				setPages(list);
+				
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		});
+		byGenre.setMinSize(150, 25);
+
+
+		Button byDirector = new Button("By Director");
+		byDirector.setOnAction(e -> {
+			try {
+				ArrayList<Movie> list = new ArrayList<>();
+				HashSet<String> directors = new HashSet<>();
+				for(Movie m : selectedMovies) {
+					PreparedStatement ps = con.prepareStatement("SELECT d.directorName FROM movie_directors AS d JOIN movies AS m ON m.id = d.movieID WHERE m.title LIKE ?");
+					ps.setString(1, m.getTitle());
+					ResultSet rs = ps.executeQuery();
+					while(rs.next()) {
+						directors.add(rs.getString("d.directorName"));
+					}
+					rs.close();
+					ps.close();
+				}
+
+				for(String d : directors) {
+					PreparedStatement ps = con.prepareStatement("SELECT DISTINCT id, title, year, rtAudienceScore, rtPictureURL, imdbPictureURL, rtAudienceScore FROM movies where id IN (SELECT movieID FROM movie_directors WHERE directorName = ?) ORDER BY movies.rtAudienceScore DESC LIMIT 5");
+					ps.setString(1, d);
+					ResultSet rs = ps.executeQuery();
+					while(rs.next()) {
+						list.add(new Movie(rs.getInt("id"), rs.getString("title"), rs.getInt("year"), rs.getInt("rtAudienceScore"), rs.getString("rtPictureURL"), rs.getString("imdbPictureURL")));
+					}
+					rs.close();
+					ps.close();
+				}
+				setPages(list);
+				
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		});
+		byDirector.setMinSize(150, 25);
+
+		recommendations.getChildren().addAll(byGenre, byDirector);
+		recommendations.setAlignment(Pos.CENTER);
+		root.getChildren().add(recommendations);
 	}
 
 	public void getMoviesSPM(String query) throws SQLException{
