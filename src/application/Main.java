@@ -285,7 +285,7 @@ public class Main extends Application {
 			try {
 				root.getChildren().remove(3);
 				root.getChildren().remove(2);
-				seeTopActors();
+				seeRecommendations();
 			} catch (Exception e1) {
 				root.getChildren().remove(2);
 				try {
@@ -556,7 +556,7 @@ public class Main extends Application {
 
 		((ButtonBase) topDirectorButtons.getChildren().get(1)).setOnAction(e -> {
 			try {
-				getPopular("SELECT d.directorName FROM movie_directors AS d JOIN movies AS m ON m.id = d.movieID WHERE d.directorName IN (SELECT d.directorName FROM movie_directors AS d GROUP BY d.directorName HAVING COUNT(*) >?) ORDER BY m.rtAudienceScore LIMIT 10");
+				getPopular("SELECT d.directorName FROM movie_directors AS d JOIN movies AS m ON m.id = d.movieID WHERE d.directorName IN (SELECT DISTINCT d.directorName FROM movie_directors AS d GROUP BY d.directorName HAVING COUNT(*) >?) ORDER BY m.rtAudienceScore LIMIT 10");
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
