@@ -3,7 +3,6 @@ package application;
 import java.sql.Date;
 
 public class UserRatings {
-	private int id;
 	private String title;
 	private Date time;
 	private double rating;
