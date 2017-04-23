@@ -100,7 +100,7 @@ public class Main extends Application {
 			menu = new Scene(root);
 			menu.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			stage.setScene(menu);
-			//stage.setMaximized(true);
+			stage.setMaximized(true);
 		}
 	}
 
