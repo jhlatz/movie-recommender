@@ -77,7 +77,7 @@ public class Movie {
 
 		try {
 			con = DriverManager.getConnection(url, user, password);
-			PreparedStatement ps = con.prepareStatement("SELECT t.Value FROM tags AS t JOIN movie_tags AS mt ON mt.tagID = t.id JOIN movies AS m ON m.id = mt.movieID WHERE m.title LIKE ?");
+			PreparedStatement ps = con.prepareStatement("SELECT t.Value, mt.tagWeight FROM tags AS t JOIN movie_tags AS mt ON mt.tagID = t.id JOIN movies AS m ON m.id = mt.movieID WHERE m.title LIKE ? ORDER BY mt.tagWeight DESC");
 			ps.setString(1, t);
 			ResultSet rs = ps.executeQuery();
 
